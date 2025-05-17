@@ -311,8 +311,8 @@ export async function generatePDF(invoice: InvoiceData): Promise<void> {
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(`₹${invoice.totalAmount.toFixed(2)}`, {
-    x: descTableX + descColWidth + amountColWidth - 60,
+  page.drawText(`Rs. ${invoice.totalAmount.toFixed(2)}`, {
+    x: descTableX + descColWidth + amountColWidth - 70,
     y: y - descTableRowHeight - descTableRowHeight/2 - 5,
     size: 10,
     font: helveticaFont,
@@ -379,8 +379,8 @@ export async function generatePDF(invoice: InvoiceData): Promise<void> {
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(`₹${invoice.totalAmount.toFixed(2)}`, {
-    x: descTableX + descColWidth + amountColWidth - 60,
+  page.drawText(`Rs. ${invoice.totalAmount.toFixed(2)}`, {
+    x: descTableX + descColWidth + amountColWidth - 70,
     y: finalRowY - descTableRowHeight/2 - 5,
     size: 10,
     font: helveticaBold,

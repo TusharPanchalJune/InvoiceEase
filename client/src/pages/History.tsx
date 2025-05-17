@@ -145,7 +145,7 @@ export default function History() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{invoice.customerName}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">₹{invoice.totalAmount.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Rs. {invoice.totalAmount.toFixed(2)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Button 
                           size="sm" 

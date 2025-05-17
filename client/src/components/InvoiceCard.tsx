@@ -71,7 +71,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
           <tbody>
             <tr>
               <td className="p-2 border border-gray-300">{invoice.description}</td>
-              <td className="p-2 text-right border border-gray-300">₹{invoice.totalAmount.toFixed(2)}</td>
+              <td className="p-2 text-right border border-gray-300">Rs. {invoice.totalAmount.toFixed(2)}</td>
             </tr>
             {/* Add empty rows to match template */}
             {[...Array(3)].map((_, index) => (
@@ -85,7 +85,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
               <td className="p-2 border border-gray-300">
                 <div className="flex justify-between font-bold">
                   <span>TOTAL</span>
-                  <span>₹{invoice.totalAmount.toFixed(2)}</span>
+                  <span>Rs. {invoice.totalAmount.toFixed(2)}</span>
                 </div>
               </td>
             </tr>

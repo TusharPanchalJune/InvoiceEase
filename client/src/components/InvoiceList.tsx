@@ -49,7 +49,7 @@ const InvoiceList: React.FC<InvoiceListProps> = ({
         <div className="space-y-6 max-h-[800px] overflow-y-auto pr-2">
           {invoices.map((invoice) => (
             <InvoiceCard 
-              key={invoice.invoiceNumber} 
+              key={`${invoice.invoiceNumber}-${invoice.id}`} 
               invoice={invoice} 
               onDownload={() => onDownload(invoice)}
             />
