@@ -19,9 +19,9 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
         <div className="flex justify-between items-center">
           <div>
             <p className="font-bold">MP Beauty Association</p>
-            <p className="text-sm text-gray-500">[Street Address]</p>
+            {/* <p className="text-sm text-gray-500">[Street Address]</p>
             <p className="text-sm text-gray-500">[City, ST ZIP]</p>
-            <p className="text-sm text-gray-500">Phone: (000) 000-0000</p>
+            <p className="text-sm text-gray-500">Phone: (000) 000-0000</p> */}
           </div>
           <div className="text-right">
             <p className="text-2xl text-gray-400 font-bold">INVOICE</p>
@@ -51,11 +51,11 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
         </div>
         <div className="pl-1">
           <p className="font-medium">{invoice.customerName}</p>
-          <p className="text-sm text-gray-600">[Company Name]</p>
+          {/* <p className="text-sm text-gray-600">[Company Name]</p>
           <p className="text-sm text-gray-600">[Street Address]</p>
-          <p className="text-sm text-gray-600">[City, ST ZIP]</p>
+          <p className="text-sm text-gray-600">[City, ST ZIP]</p> */}
           <p className="text-sm text-gray-600">{invoice.customerContact}</p>
-          <p className="text-sm text-gray-600">[Email Address]</p>
+          {/* <p className="text-sm text-gray-600">[Email Address]</p> */}
         </div>
       </div>
       
@@ -73,13 +73,19 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
               <td className="p-2 border border-gray-300">{invoice.description}</td>
               <td className="p-2 text-right border border-gray-300">Rs. {invoice.totalAmount.toFixed(2)}</td>
             </tr>
-            {/* Add empty rows to match template */}
-            {[...Array(3)].map((_, index) => (
-              <tr key={index}>
-                <td className="p-2 border border-gray-300 h-8"></td>
-                <td className="p-2 text-right border border-gray-300"></td>
-              </tr>
-            ))}
+            <tr>
+              <td className="p-2 border border-gray-300 text-gray-600">Amount Paid</td>
+              <td className="p-2 text-right border border-gray-300 text-green-600">Rs. {invoice.amountPaid.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td className="p-2 border border-gray-300 text-gray-600">Due Amount</td>
+              <td className="p-2 text-right border border-gray-300 text-red-600">Rs. {invoice.dueAmount.toFixed(2)}</td>
+            </tr>
+            {/* Add empty row to match template */}
+            <tr>
+              <td className="p-2 border border-gray-300 h-8"></td>
+              <td className="p-2 text-right border border-gray-300"></td>
+            </tr>
             <tr>
               <td className="p-2 border border-gray-300 text-center italic">Thank you for your business!</td>
               <td className="p-2 border border-gray-300">
@@ -95,8 +101,8 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
       
       {/* Invoice Footer */}
       <div className="px-4 pb-4 text-center text-sm text-gray-600">
-        <p>If you have any questions about this invoice, please contact</p>
-        <p>[Name, Phone, email@address.com]</p>
+        {/* <p>If you have any questions about this invoice, please contact</p>
+        <p>[Name, Phone, email@address.com]</p> */}
       </div>
       
       {/* Download Button */}
