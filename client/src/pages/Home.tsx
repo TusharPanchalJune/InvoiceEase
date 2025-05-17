@@ -22,10 +22,10 @@ export default function Home() {
     <div className="min-h-screen">
       {/* Header Section */}
       <header className="bg-white border-b border-gray-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">MP Beauty Association</h1>
+              <h1 className="text-2xl font-bold text-gray-800">MP Beauty Association</h1>
             </div>
             <h2 className="text-lg font-medium text-gray-600">Invoice Generator</h2>
           </div>
