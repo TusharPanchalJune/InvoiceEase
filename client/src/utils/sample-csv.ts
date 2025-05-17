@@ -1,6 +1,6 @@
 export function getSampleCSV(): string {
   return `Customer Name,Customer Contact Number,Payment For,Amount Paid,Due Amount
-John Doe,+91 98765 43210,Hair Treatment,1500.00,500.00
-Jane Smith,+91 87654 32109,Facial and Massage,2400.00,0.00
-Michael Johnson,+91 76543 21098,Hair Coloring,1800.00,1200.00`;
+John Doe,+1 (555) 123-4567,Hair Treatment,75.00,25.00
+Jane Smith,+1 (555) 987-6543,Facial and Massage,120.00,0.00
+Michael Johnson,+1 (555) 555-5555,Hair Coloring,90.00,60.00`;
 }

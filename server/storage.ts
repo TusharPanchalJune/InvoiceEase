@@ -1,6 +1,4 @@
-import { users, invoices, type User, type InsertUser, type Invoice } from "@shared/schema";
-import { db } from "./db";
-import { eq, desc, count } from "drizzle-orm";
+import { users, type User, type InsertUser, type Invoice } from "@shared/schema";
 
 // Extend the storage interface with invoice-related methods
 export interface IStorage {
@@ -16,56 +14,72 @@ export interface IStorage {
   getInvoiceCount(): Promise<number>;
 }
 
-export class DatabaseStorage implements IStorage {
+export class MemStorage implements IStorage {
+  private users: Map<number, User>;
+  private invoices: Map<number, Invoice>;
+  private userCurrentId: number;
+  private invoiceCurrentId: number;
+
+  constructor() {
+    this.users = new Map();
+    this.invoices = new Map();
+    this.userCurrentId = 1;
+    this.invoiceCurrentId = 1;
+  }
+
   // User methods
   async getUser(id: number): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.id, id));
-    return user || undefined;
+    return this.users.get(id);
   }
 
   async getUserByUsername(username: string): Promise<User | undefined> {
-    const [user] = await db.select().from(users).where(eq(users.username, username));
-    return user || undefined;
+    return Array.from(this.users.values()).find(
+      (user) => user.username === username,
+    );
   }
 
   async createUser(insertUser: InsertUser): Promise<User> {
-    const [user] = await db
-      .insert(users)
-      .values(insertUser)
-      .returning();
+    const id = this.userCurrentId++;
+    const user: User = { ...insertUser, id };
+    this.users.set(id, user);
     return user;
   }
 
   // Invoice methods
   async getAllInvoices(): Promise<Invoice[]> {
-    // Sort by creation date, newest first
-    return db.select().from(invoices).orderBy(desc(invoices.createdAt));
+    return Array.from(this.invoices.values()).sort((a, b) => {
+      // Sort by creation date, newest first
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
   }
 
   async getInvoice(id: number): Promise<Invoice | undefined> {
-    const [invoice] = await db.select().from(invoices).where(eq(invoices.id, id));
-    return invoice || undefined;
+    return this.invoices.get(id);
   }
 
   async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
-    const [invoice] = await db.select().from(invoices).where(eq(invoices.invoiceNumber, invoiceNumber));
-    return invoice || undefined;
+    return Array.from(this.invoices.values()).find(
+      (invoice) => invoice.invoiceNumber === invoiceNumber,
+    );
   }
 
   async createInvoice(invoice: Omit<Invoice, 'id' | 'createdAt'>): Promise<Invoice> {
-    // The createdAt field has a defaultNow() so we don't need to specify it
-    const [newInvoice] = await db
-      .insert(invoices)
-      .values(invoice)
-      .returning();
+    const id = this.invoiceCurrentId++;
+    const createdAt = new Date();
     
+    const newInvoice: Invoice = {
+      ...invoice,
+      id,
+      createdAt
+    };
+    
+    this.invoices.set(id, newInvoice);
     return newInvoice;
   }
 
   async getInvoiceCount(): Promise<number> {
-    const [result] = await db.select({ value: count() }).from(invoices);
-    return result?.value || 0;
+    return this.invoiceCurrentId - 1;
   }
 }
 
-export const storage = new DatabaseStorage();
+export const storage = new MemStorage();

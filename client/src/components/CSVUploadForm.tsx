@@ -165,8 +165,8 @@ const CSVUploadForm: React.FC<CSVUploadFormProps> = ({ isVisible, handleUpload }
           <div className="mt-2 bg-gray-50 p-3 rounded-md overflow-x-auto">
             <code className="text-xs text-gray-800">
               Customer Name,Customer Contact Number,Payment For,Amount Paid,Due Amount<br />
-              John Doe,+91 98765 43210,Hair Treatment,1500.00,500.00<br />
-              Jane Smith,+91 87654 32109,Facial and Massage,2400.00,0.00
+              John Doe,+1 (555) 123-4567,Hair Treatment,75.00,25.00<br />
+              Jane Smith,+1 (555) 987-6543,Facial and Massage,120.00,0.00
             </code>
           </div>
         </div>
