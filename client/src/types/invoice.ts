@@ -1,21 +1,23 @@
 export interface InvoiceData {
-  id?: number;
+  id: number;
   invoiceNumber: string;
   customerName: string;
   customerContact: string;
   description: string;
-  amountPaid: number;
-  dueAmount: number;
-  totalAmount: number;
-  createdAt?: Date;
+  amountPaid: string;
+  dueAmount: string;
+  totalAmount: string;
+  createdAt: Date;
+  isDownloaded?: boolean;
+  isActive?: boolean;
 }
 
 export interface InvoiceInput {
   customerName: string;
   customerContact: string;
   description: string;
-  amountPaid: number;
-  dueAmount: number;
+  amountPaid: string;
+  dueAmount: string;
 }
 
 export interface CSVRow {

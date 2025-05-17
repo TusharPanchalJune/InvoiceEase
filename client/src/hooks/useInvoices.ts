@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { InvoiceData, InvoiceInput } from "@/types/invoice";
 import { apiRequest } from "@/lib/queryClient";
 import { generatePDF, generatePDFBytes } from "@/utils/pdf-generator";
@@ -8,22 +8,34 @@ import { parseCSV } from "@/utils/csv-parser";
 import JSZip from "jszip";
 import { format } from "date-fns";
 
-const queryClient = new QueryClient();
-
 export function useInvoices() {
   const { toast } = useToast();
+  const queryClient = useQueryClient();
   const [downloadingIds, setDownloadingIds] = useState<Set<string>>(new Set());
   const [isDownloadingAll, setIsDownloadingAll] = useState(false);
 
   // Fetch all invoices
   const { 
-    data: invoices = [], 
+    data: allInvoices = [], 
     isLoading,
     isError,
     refetch
   } = useQuery<InvoiceData[]>({
-    queryKey: ["/api/invoices"],
+    queryKey: ['/api/invoices'],
     refetchOnWindowFocus: false,
+    gcTime: 0,
+    staleTime: 0
+  });
+
+  // Fetch undownloaded invoices
+  const { 
+    data: undownloadedInvoices = [],
+    refetch: refetchUndownloaded
+  } = useQuery<InvoiceData[]>({
+    queryKey: ['/api/invoices/undownloaded'],
+    refetchOnWindowFocus: false,
+    gcTime: 0,
+    staleTime: 0
   });
 
   // Handle any fetch errors
@@ -37,19 +49,46 @@ export function useInvoices() {
     }
   }, [isError, toast]);
 
+  // Mark invoice as downloaded
+  const markAsDownloadedMutation = useMutation({
+    mutationFn: async (invoiceId: number) => {
+      const response = await apiRequest("POST", `/api/invoices/${invoiceId}/downloaded`);
+      return response.json();
+    },
+    onSuccess: async () => {
+      // Invalidate and immediately refetch
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['/api/invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/invoices/undownloaded'] })
+      ]);
+      await Promise.all([refetch(), refetchUndownloaded()]);
+    },
+    onError: (error: Error) => {
+      toast({
+        title: "Error",
+        description: "Failed to mark invoice as downloaded",
+        variant: "destructive",
+      });
+    },
+  });
+
   // Create a new invoice (manual form)
   const createInvoiceMutation = useMutation({
     mutationFn: async (invoiceData: InvoiceInput) => {
       const response = await apiRequest("POST", "/api/invoices", invoiceData);
       return response.json();
     },
-    onSuccess: () => {
+    onSuccess: async () => {
       toast({
         title: "Success",
         description: "Invoice generated successfully",
       });
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
-      refetch();
+      // Invalidate and immediately refetch
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['/api/invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/invoices/undownloaded'] })
+      ]);
+      await Promise.all([refetch(), refetchUndownloaded()]);
     },
     onError: (error: Error) => {
       toast({
@@ -79,7 +118,7 @@ export function useInvoices() {
       
       return response.json();
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       toast({
         title: "Success",
         description: `${data.invoices.length} invoices generated successfully`,
@@ -93,8 +132,12 @@ export function useInvoices() {
         });
       }
       
-      queryClient.invalidateQueries({ queryKey: ["/api/invoices"] });
-      refetch();
+      // Invalidate and immediately refetch
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['/api/invoices'] }),
+        queryClient.invalidateQueries({ queryKey: ['/api/invoices/undownloaded'] })
+      ]);
+      await Promise.all([refetch(), refetchUndownloaded()]);
     },
     onError: (error: Error) => {
       toast({
@@ -131,7 +174,8 @@ export function useInvoices() {
     const dateStr = invoice.createdAt 
       ? format(new Date(invoice.createdAt), "yyyyMMdd")
       : format(new Date(), "yyyyMMdd");
-    return `${customerNameSlug}_${dateStr}_${invoice.totalAmount.toFixed(0)}.pdf`;
+    const amount = Number(invoice.totalAmount).toFixed(0);
+    return `${customerNameSlug}_${dateStr}_${amount}_${invoice.invoiceNumber}.pdf`;
   };
 
   // Download single invoice as PDF
@@ -140,6 +184,7 @@ export function useInvoices() {
       setDownloadingIds(prev => new Set(prev).add(invoice.invoiceNumber));
       const fileName = getInvoiceFileName(invoice);
       await generatePDF(invoice, fileName);
+      await markAsDownloadedMutation.mutateAsync(invoice.id);
     } catch (error) {
       toast({
         title: "Download Failed",
@@ -157,7 +202,7 @@ export function useInvoices() {
 
   // Download all invoices as a ZIP file containing PDFs
   const downloadAllPdfs = async () => {
-    if (invoices.length === 0) return;
+    if (undownloadedInvoices.length === 0) return;
     
     try {
       setIsDownloadingAll(true);
@@ -170,19 +215,32 @@ export function useInvoices() {
       });
       
       // Generate PDF bytes for each invoice and add to zip
-      for (let i = 0; i < invoices.length; i++) {
-        const invoice = invoices[i];
-        const fileName = getInvoiceFileName(invoice);
-        
-        // Generate PDF bytes
-        const pdfBytes = await generatePDFBytes(invoice);
-        
-        // Add to zip
-        zip.file(fileName, pdfBytes);
+      for (const invoice of undownloadedInvoices) {
+        try {
+          const fileName = getInvoiceFileName(invoice);
+          console.log(`Processing invoice: ${invoice.invoiceNumber}, fileName: ${fileName}`);
+          
+          // Generate PDF bytes
+          const pdfBytes = await generatePDFBytes(invoice);
+          console.log(`Generated PDF bytes for invoice: ${invoice.invoiceNumber}`);
+          
+          // Add to zip
+          zip.file(fileName, pdfBytes);
+          console.log(`Added to ZIP: ${fileName}`);
+          
+          // Mark as downloaded
+          await markAsDownloadedMutation.mutateAsync(invoice.id);
+          console.log(`Marked as downloaded: ${invoice.invoiceNumber}`);
+        } catch (invoiceError) {
+          console.error(`Error processing invoice ${invoice.invoiceNumber}:`, invoiceError);
+          throw invoiceError;
+        }
       }
       
       // Generate zip file
+      console.log('Generating final ZIP file...');
       const zipContent = await zip.generateAsync({ type: 'blob' });
+      console.log('ZIP file generated successfully');
       
       // Create download link
       const url = URL.createObjectURL(zipContent);
@@ -196,12 +254,13 @@ export function useInvoices() {
       
       toast({
         title: "Success",
-        description: `Downloaded ${invoices.length} invoices as a ZIP file`,
+        description: `Downloaded ${undownloadedInvoices.length} invoices as a ZIP file`,
       });
     } catch (error) {
+      console.error('Error in downloadAllPdfs:', error);
       toast({
         title: "Download Failed",
-        description: "Failed to generate ZIP file for download",
+        description: error instanceof Error ? error.message : "Failed to generate ZIP file for download",
         variant: "destructive",
       });
     } finally {
@@ -209,8 +268,77 @@ export function useInvoices() {
     }
   };
 
+  // Delete invoice mutation
+  const deleteInvoiceMutation = useMutation({
+    mutationFn: async (id: number) => {
+      const response = await fetch(`/api/invoices/${id}`, {
+        method: 'DELETE',
+      });
+      if (!response.ok) {
+        throw new Error('Failed to delete invoice');
+      }
+      return id;
+    },
+    onMutate: async (id) => {
+      // Cancel any outgoing refetches
+      await queryClient.cancelQueries({ queryKey: ['/api/invoices'] });
+      await queryClient.cancelQueries({ queryKey: ['/api/invoices/undownloaded'] });
+
+      // Snapshot the previous values
+      const previousInvoices = queryClient.getQueryData<InvoiceData[]>(['/api/invoices']);
+      const previousUndownloaded = queryClient.getQueryData<InvoiceData[]>(['/api/invoices/undownloaded']);
+
+      // Optimistically update both queries
+      if (previousInvoices) {
+        queryClient.setQueryData<InvoiceData[]>(
+          ['/api/invoices'],
+          previousInvoices.filter(invoice => invoice.id !== id)
+        );
+      }
+      if (previousUndownloaded) {
+        queryClient.setQueryData<InvoiceData[]>(
+          ['/api/invoices/undownloaded'],
+          previousUndownloaded.filter(invoice => invoice.id !== id)
+        );
+      }
+
+      return { previousInvoices, previousUndownloaded };
+    },
+    onError: (err, id, context) => {
+      // Roll back both queries on error
+      if (context?.previousInvoices) {
+        queryClient.setQueryData(['/api/invoices'], context.previousInvoices);
+      }
+      if (context?.previousUndownloaded) {
+        queryClient.setQueryData(['/api/invoices/undownloaded'], context.previousUndownloaded);
+      }
+      toast({
+        title: "Error",
+        description: "Failed to delete invoice",
+        variant: "destructive",
+      });
+    },
+    onSuccess: () => {
+      toast({
+        title: "Success",
+        description: "Invoice deleted successfully",
+      });
+    },
+    onSettled: () => {
+      // Invalidate and refetch
+      queryClient.invalidateQueries({ queryKey: ['/api/invoices'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/invoices/undownloaded'] });
+    },
+  });
+
+  // Delete invoice function
+  const deleteInvoice = async (id: number) => {
+    await deleteInvoiceMutation.mutateAsync(id);
+  };
+
   return {
-    invoices,
+    invoices: allInvoices,
+    undownloadedInvoices,
     isLoading: isLoading || createInvoiceMutation.isPending || processCSVMutation.isPending,
     isProcessingCSV: processCSVMutation.isPending,
     isCreatingInvoice: createInvoiceMutation.isPending,
@@ -220,5 +348,6 @@ export function useInvoices() {
     processCSV,
     downloadPdf,
     downloadAllPdfs,
+    deleteInvoice
   };
 }

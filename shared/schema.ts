@@ -8,13 +8,16 @@ export const users = pgTable("users", {
   password: text("password").notNull(),
 });
 
-export const insertUserSchema = createInsertSchema(users).pick({
-  username: true,
-  password: true,
+export const userSchema = z.object({
+  id: z.number(),
+  username: z.string(),
+  password: z.string(),
 });
 
+export const insertUserSchema = userSchema.omit({ id: true });
+
+export type User = z.infer<typeof userSchema>;
 export type InsertUser = z.infer<typeof insertUserSchema>;
-export type User = typeof users.$inferSelect;
 
 // Invoice schema
 export const invoices = pgTable("invoices", {
@@ -35,15 +38,29 @@ export const insertInvoiceSchema = createInsertSchema(invoices).omit({
   createdAt: true,
 });
 
-export const invoiceSchema = z.object({
+// Schema for creating a new invoice
+export const createInvoiceSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   customerContact: z.string().min(1, "Customer contact is required"),
   description: z.string().min(1, "Payment description is required"),
-  amountPaid: z.coerce.number().min(0, "Amount paid must be 0 or greater"),
-  dueAmount: z.coerce.number().min(0, "Due amount must be 0 or greater"),
+  amountPaid: z.string()
+    .min(1, "Amount paid is required")
+    .refine(val => !isNaN(Number(val)) && Number(val) >= 0, "Amount paid must be a valid number greater than or equal to 0"),
+  dueAmount: z.string()
+    .min(1, "Due amount is required")
+    .refine(val => !isNaN(Number(val)) && Number(val) >= 0, "Due amount must be a valid number greater than or equal to 0"),
   invoiceNumber: z.string().optional()
 });
 
-export type InvoiceInput = z.infer<typeof invoiceSchema>;
+// Full invoice schema including all fields
+export const invoiceSchema = createInvoiceSchema.extend({
+  id: z.number(),
+  invoiceNumber: z.string(),
+  totalAmount: z.string(),
+  createdAt: z.date(),
+  isDownloaded: z.boolean(),
+  isActive: z.boolean().default(true)
+});
+
 export type InsertInvoice = z.infer<typeof insertInvoiceSchema>;
-export type Invoice = typeof invoices.$inferSelect;
+export type Invoice = z.infer<typeof invoiceSchema>;

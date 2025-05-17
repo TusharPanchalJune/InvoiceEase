@@ -181,7 +181,7 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
   y -= billToBoxHeight + 20;
   
   // Customer Info
-  page.drawText(invoice.customerName, {
+  page.drawText(String(invoice.customerName), {
     x: margin,
     y,
     size: 10,
@@ -221,7 +221,7 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
   
   // y -= 15;
   
-  page.drawText(invoice.customerContact, {
+  page.drawText(String(invoice.customerContact), {
     x: margin,
     y,
     size: 10,
@@ -312,7 +312,7 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(`Rs. ${invoice.totalAmount.toFixed(2)}`, {
+  page.drawText(`Rs. ${Number(invoice.totalAmount).toFixed(2)}`, {
     x: descTableX + descColWidth + amountColWidth - 70,
     y: y - descTableRowHeight - descTableRowHeight/2 - 5,
     size: 10,
@@ -348,7 +348,7 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
     color: rgb(0.4, 0.4, 0.4),
   });
 
-  page.drawText(`Rs. ${invoice.amountPaid.toFixed(2)}`, {
+  page.drawText(`Rs. ${Number(invoice.amountPaid).toFixed(2)}`, {
     x: descTableX + descColWidth + amountColWidth - 70,
     y: paidRowY - descTableRowHeight/2 - 5,
     size: 10,
@@ -384,7 +384,7 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
     color: rgb(0.4, 0.4, 0.4),
   });
 
-  page.drawText(`Rs. ${invoice.dueAmount.toFixed(2)}`, {
+  page.drawText(`Rs. ${Number(invoice.dueAmount).toFixed(2)}`, {
     x: descTableX + descColWidth + amountColWidth - 70,
     y: dueRowY - descTableRowHeight/2 - 5,
     size: 10,
@@ -449,7 +449,7 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(`Rs. ${invoice.totalAmount.toFixed(2)}`, {
+  page.drawText(`Rs. ${Number(invoice.totalAmount).toFixed(2)}`, {
     x: descTableX + descColWidth + amountColWidth - 70,
     y: finalRowY - descTableRowHeight/2 - 5,
     size: 10,
@@ -481,7 +481,7 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
   // Small credit at the bottom
   y = margin;
   
-  page.drawText('Invoice Template © 2025 MP Beauty Association', {
+  page.drawText('Invoice Generator © Kashish Panchal', {
     x: margin,
     y,
     size: 8,

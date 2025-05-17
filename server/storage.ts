@@ -1,4 +1,5 @@
-import { users, type User, type InsertUser, type Invoice } from "@shared/schema";
+import { type User, type InsertUser, type Invoice } from "@shared/schema";
+import { getAllInvoices, saveInvoice, saveInvoices, getNextInvoiceId, getUndownloadedInvoices, markInvoiceAsDownloaded, markInvoicesAsDownloaded, markInvoiceAsInactive } from "./utils/csv-storage";
 
 // Extend the storage interface with invoice-related methods
 export interface IStorage {
@@ -8,23 +9,23 @@ export interface IStorage {
   
   // Invoice methods
   getAllInvoices(): Promise<Invoice[]>;
+  getUndownloadedInvoices(): Promise<Invoice[]>;
   getInvoice(id: number): Promise<Invoice | undefined>;
   getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined>;
-  createInvoice(invoice: Omit<Invoice, 'id' | 'createdAt'>): Promise<Invoice>;
+  createInvoice(invoice: Omit<Invoice, 'id' | 'createdAt' | 'isDownloaded' | 'isActive'>): Promise<Invoice>;
+  markInvoiceAsDownloaded(id: number): Promise<void>;
+  markMultipleAsDownloaded(invoiceIds: number[]): Promise<void>;
+  markInvoiceAsInactive(id: number): Promise<void>;
   getInvoiceCount(): Promise<number>;
 }
 
-export class MemStorage implements IStorage {
+export class FileStorage implements IStorage {
   private users: Map<number, User>;
-  private invoices: Map<number, Invoice>;
   private userCurrentId: number;
-  private invoiceCurrentId: number;
 
   constructor() {
     this.users = new Map();
-    this.invoices = new Map();
     this.userCurrentId = 1;
-    this.invoiceCurrentId = 1;
   }
 
   // User methods
@@ -47,39 +48,59 @@ export class MemStorage implements IStorage {
 
   // Invoice methods
   async getAllInvoices(): Promise<Invoice[]> {
-    return Array.from(this.invoices.values()).sort((a, b) => {
+    return getAllInvoices().sort((a, b) => {
+      // Sort by creation date, newest first
+      return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+    });
+  }
+
+  async getUndownloadedInvoices(): Promise<Invoice[]> {
+    return getUndownloadedInvoices().sort((a, b) => {
       // Sort by creation date, newest first
       return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
     });
   }
 
   async getInvoice(id: number): Promise<Invoice | undefined> {
-    return this.invoices.get(id);
+    const invoices = getAllInvoices();
+    return invoices.find(invoice => invoice.id === id);
   }
 
   async getInvoiceByNumber(invoiceNumber: string): Promise<Invoice | undefined> {
-    return Array.from(this.invoices.values()).find(
-      (invoice) => invoice.invoiceNumber === invoiceNumber,
-    );
+    const invoices = getAllInvoices();
+    return invoices.find(invoice => invoice.invoiceNumber === invoiceNumber);
   }
 
-  async createInvoice(invoice: Omit<Invoice, 'id' | 'createdAt'>): Promise<Invoice> {
-    const id = this.invoiceCurrentId++;
+  async createInvoice(invoice: Omit<Invoice, 'id' | 'createdAt' | 'isDownloaded' | 'isActive'>): Promise<Invoice> {
+    const id = getNextInvoiceId();
     const createdAt = new Date();
     
     const newInvoice: Invoice = {
       ...invoice,
       id,
-      createdAt
+      createdAt,
+      isDownloaded: false,
+      isActive: true
     };
     
-    this.invoices.set(id, newInvoice);
-    return newInvoice;
+    return saveInvoice(newInvoice);
+  }
+
+  async markInvoiceAsDownloaded(id: number): Promise<void> {
+    await markInvoiceAsDownloaded(id);
+  }
+
+  async markMultipleAsDownloaded(invoiceIds: number[]): Promise<void> {
+    await markInvoicesAsDownloaded(invoiceIds);
+  }
+
+  async markInvoiceAsInactive(id: number): Promise<void> {
+    await markInvoiceAsInactive(id);
   }
 
   async getInvoiceCount(): Promise<number> {
-    return this.invoiceCurrentId - 1;
+    return getAllInvoices().length;
   }
 }
 
-export const storage = new MemStorage();
+export const storage = new FileStorage();

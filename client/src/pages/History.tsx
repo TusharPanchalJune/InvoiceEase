@@ -8,23 +8,26 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { format } from "date-fns";
 import { Link } from "wouter";
 import { useInvoices } from "@/hooks/useInvoices";
+import { useToast } from "@/hooks/use-toast";
 
 export default function History() {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterCriteria, setFilterCriteria] = useState<"customerName" | "invoiceNumber" | "date">("customerName");
   const [filteredInvoices, setFilteredInvoices] = useState<InvoiceData[]>([]);
+  const [deletingInvoiceId, setDeletingInvoiceId] = useState<number | null>(null);
   
   // Use the same invoices hook from Home page
-  const { invoices, isLoading, downloadPdf } = useInvoices();
+  const { invoices, isLoading, downloadPdf, deleteInvoice } = useInvoices();
   
   // Apply filters when invoices or filter criteria change
   useEffect(() => {
     if (!searchTerm.trim()) {
-      setFilteredInvoices(invoices);
+      setFilteredInvoices(invoices || []);
       return;
     }
     
-    const filtered = invoices.filter(invoice => {
+    const filtered = (invoices || []).filter(invoice => {
       const searchLower = searchTerm.toLowerCase();
       
       switch (filterCriteria) {
@@ -46,6 +49,24 @@ export default function History() {
     setFilteredInvoices(filtered);
   }, [invoices, searchTerm, filterCriteria]);
   
+  // Handle delete
+  const handleDelete = async (invoice: InvoiceData) => {
+    try {
+      setDeletingInvoiceId(invoice.id);
+      await deleteInvoice(invoice.id);
+      // Update filtered invoices immediately after deletion
+      setFilteredInvoices(current => current.filter(inv => inv.id !== invoice.id));
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete invoice",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingInvoiceId(null);
+    }
+  };
+  
   return (
     <div className="min-h-screen">
       {/* Header Section */}
@@ -53,7 +74,7 @@ export default function History() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center">
-              <h1 className="text-2xl font-bold text-gray-900">MP Beauty Association</h1>
+              <h1 className="text-2xl font-bold text-gray-900">Kashee Invoice Generator</h1>
             </div>
             <h2 className="text-lg font-medium text-gray-600">Invoice History</h2>
           </div>
@@ -147,16 +168,31 @@ export default function History() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{invoice.customerName}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">Rs. {invoice.amountPaid.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">Rs. {invoice.dueAmount.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs. {invoice.totalAmount.toFixed(2)}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">Rs. {Number(invoice.amountPaid).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">Rs. {Number(invoice.dueAmount).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs. {Number(invoice.totalAmount).toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex justify-end items-center gap-2">
                         <Button 
                           size="sm" 
                           onClick={() => downloadPdf(invoice)}
                           className="flex items-center"
+                          title="Download Invoice"
                         >
-                          <i className="ri-download-line mr-1"></i> Download
+                          <i className="ri-download-line"></i>
+                        </Button>
+                        <Button 
+                          size="sm"
+                          variant="destructive"
+                          onClick={() => handleDelete(invoice)}
+                          disabled={deletingInvoiceId === invoice.id}
+                          className="flex items-center"
+                          title="Delete Invoice"
+                        >
+                          {deletingInvoiceId === invoice.id ? (
+                            <i className="ri-loader-4-line animate-spin"></i>
+                          ) : (
+                            <i className="ri-delete-bin-line"></i>
+                          )}
                         </Button>
                       </td>
                     </tr>
@@ -172,7 +208,7 @@ export default function History() {
       <footer className="bg-white border-t border-gray-200 mt-8">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
           <p className="text-center text-sm text-gray-500">
-            © {new Date().getFullYear()} MP Beauty Association. All rights reserved.
+            © {new Date().getFullYear()} Kashish Panchal. All rights reserved.
           </p>
         </div>
       </footer>

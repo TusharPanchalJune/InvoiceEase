@@ -11,9 +11,13 @@ const formSchema = z.object({
   customerName: z.string().min(1, "Customer name is required"),
   customerContact: z.string().min(1, "Customer contact is required"),
   description: z.string().min(1, "Payment description is required"),
-  amountPaid: z.coerce.number().min(0, "Amount paid must be 0 or greater"),
-  dueAmount: z.coerce.number().min(0, "Due amount must be 0 or greater")
+  amountPaid: z.coerce.number()
+    .min(0, "Amount paid must be 0 or greater"),
+  dueAmount: z.coerce.number()
+    .min(0, "Due amount must be 0 or greater")
 });
+
+type FormSchema = z.infer<typeof formSchema>;
 
 interface ManualInvoiceFormProps {
   isVisible: boolean;
@@ -23,7 +27,7 @@ interface ManualInvoiceFormProps {
 const ManualInvoiceForm: React.FC<ManualInvoiceFormProps> = ({ isVisible, handleSubmit }) => {
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const form = useForm<z.infer<typeof formSchema>>({
+  const form = useForm<FormSchema>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       customerName: "",
@@ -36,10 +40,14 @@ const ManualInvoiceForm: React.FC<ManualInvoiceFormProps> = ({ isVisible, handle
 
   if (!isVisible) return null;
 
-  const onSubmit = async (data: z.infer<typeof formSchema>) => {
+  const onSubmit = async (data: FormSchema) => {
     setIsSubmitting(true);
     try {
-      await handleSubmit(data);
+      await handleSubmit({
+        ...data,
+        amountPaid: data.amountPaid.toFixed(2),
+        dueAmount: data.dueAmount.toFixed(2)
+      });
       form.reset();
     } catch (error) {
       // Error handling is done in the parent component
