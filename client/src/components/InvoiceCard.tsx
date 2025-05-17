@@ -9,67 +9,98 @@ interface InvoiceCardProps {
 
 const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
   const formattedDate = invoice.createdAt 
-    ? format(new Date(invoice.createdAt), "MMMM d, yyyy") 
-    : format(new Date(), "MMMM d, yyyy");
+    ? format(new Date(invoice.createdAt), "MM/dd/yyyy") 
+    : format(new Date(), "MM/dd/yyyy");
 
   return (
-    <div className="invoice-preview bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+    <div className="invoice-preview bg-white rounded-lg overflow-hidden border border-gray-300">
       {/* Invoice Header */}
-      <div className="bg-primary-500 text-white p-4">
+      <div className="p-4 border-b border-gray-300">
         <div className="flex justify-between items-center">
-          <h4 className="text-lg font-semibold font-invoice">INVOICE</h4>
+          <div>
+            <p className="font-bold">MP Beauty Association</p>
+            <p className="text-sm text-gray-500">[Street Address]</p>
+            <p className="text-sm text-gray-500">[City, ST ZIP]</p>
+            <p className="text-sm text-gray-500">Phone: (000) 000-0000</p>
+          </div>
           <div className="text-right">
-            <p className="text-sm opacity-90">{invoice.invoiceNumber}</p>
-            <p className="text-xs opacity-75">{formattedDate}</p>
+            <p className="text-2xl text-gray-400 font-bold">INVOICE</p>
           </div>
         </div>
       </div>
       
-      {/* Invoice Content */}
-      <div className="p-4 font-invoice">
-        {/* Company Info */}
-        <div className="mb-6">
-          <p className="font-bold text-lg">MP Beauty Association</p>
+      {/* Invoice Number and Date */}
+      <div className="px-4 py-2">
+        <div className="flex">
+          <div className="w-1/2"></div>
+          <div className="w-1/2">
+            <div className="grid grid-cols-2 border border-gray-300">
+              <div className="p-2 bg-gray-100 border-r border-gray-300 font-medium text-center">INVOICE #</div>
+              <div className="p-2 bg-gray-100 font-medium text-center">DATE</div>
+              <div className="p-2 border-r border-t border-gray-300 text-center">{invoice.invoiceNumber}</div>
+              <div className="p-2 border-t border-gray-300 text-center">{formattedDate}</div>
+            </div>
+          </div>
         </div>
-        
-        {/* Customer Info */}
-        <div className="mb-4">
-          <p className="text-sm text-gray-500">BILLED TO</p>
+      </div>
+      
+      {/* Customer Info */}
+      <div className="p-4">
+        <div className="border border-gray-300 bg-gray-100 p-2 mb-1">
+          <p className="font-medium">BILL TO</p>
+        </div>
+        <div className="pl-1">
           <p className="font-medium">{invoice.customerName}</p>
+          <p className="text-sm text-gray-600">[Company Name]</p>
+          <p className="text-sm text-gray-600">[Street Address]</p>
+          <p className="text-sm text-gray-600">[City, ST ZIP]</p>
           <p className="text-sm text-gray-600">{invoice.customerContact}</p>
+          <p className="text-sm text-gray-600">[Email Address]</p>
         </div>
-        
-        {/* Services */}
-        <div className="border-t border-b border-gray-200 py-4 my-4">
-          <div className="flex justify-between mb-2">
-            <p className="text-sm font-medium">Description</p>
-            <p className="text-sm font-medium">Amount</p>
-          </div>
-          <div className="flex justify-between">
-            <p>{invoice.description}</p>
-            <p>${invoice.totalAmount.toFixed(2)}</p>
-          </div>
-        </div>
-        
-        {/* Total */}
-        <div className="space-y-1 text-right">
-          <div className="flex justify-between text-sm">
-            <p>Amount Paid:</p>
-            <p>${invoice.amountPaid.toFixed(2)}</p>
-          </div>
-          <div className="flex justify-between text-sm">
-            <p>Due Amount:</p>
-            <p>${invoice.dueAmount.toFixed(2)}</p>
-          </div>
-          <div className="flex justify-between font-medium text-base">
-            <p>Total Amount:</p>
-            <p>${invoice.totalAmount.toFixed(2)}</p>
-          </div>
-        </div>
+      </div>
+      
+      {/* Services/Description Table */}
+      <div className="px-4 pb-4">
+        <table className="w-full border-collapse border border-gray-300">
+          <thead>
+            <tr className="bg-gray-100">
+              <th className="p-2 text-left border border-gray-300 w-3/4">DESCRIPTION</th>
+              <th className="p-2 text-right border border-gray-300 w-1/4">AMOUNT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="p-2 border border-gray-300">{invoice.description}</td>
+              <td className="p-2 text-right border border-gray-300">₹{invoice.totalAmount.toFixed(2)}</td>
+            </tr>
+            {/* Add empty rows to match template */}
+            {[...Array(3)].map((_, index) => (
+              <tr key={index}>
+                <td className="p-2 border border-gray-300 h-8"></td>
+                <td className="p-2 text-right border border-gray-300"></td>
+              </tr>
+            ))}
+            <tr>
+              <td className="p-2 border border-gray-300 text-center italic">Thank you for your business!</td>
+              <td className="p-2 border border-gray-300">
+                <div className="flex justify-between font-bold">
+                  <span>TOTAL</span>
+                  <span>₹{invoice.totalAmount.toFixed(2)}</span>
+                </div>
+              </td>
+            </tr>
+          </tbody>
+        </table>
       </div>
       
       {/* Invoice Footer */}
-      <div className="bg-gray-100 p-4 flex justify-end">
+      <div className="px-4 pb-4 text-center text-sm text-gray-600">
+        <p>If you have any questions about this invoice, please contact</p>
+        <p>[Name, Phone, email@address.com]</p>
+      </div>
+      
+      {/* Download Button */}
+      <div className="bg-gray-100 p-4 flex justify-end border-t border-gray-300">
         <Button 
           size="sm" 
           onClick={onDownload}
