@@ -2,7 +2,8 @@ import { InvoiceData } from '@/types/invoice';
 import { PDFDocument, rgb, StandardFonts } from 'pdf-lib';
 import { format } from 'date-fns';
 
-export async function generatePDF(invoice: InvoiceData): Promise<void> {
+// Generate PDF bytes and return them (for ZIP creation)
+export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array> {
   // Create a new PDF document
   const pdfDoc = await PDFDocument.create();
   
@@ -420,16 +421,27 @@ export async function generatePDF(invoice: InvoiceData): Promise<void> {
   });
   
   // Serialize the PDF to bytes
-  const pdfBytes = await pdfDoc.save();
-  
-  // Trigger download
-  const blob = new Blob([pdfBytes], { type: 'application/pdf' });
-  const url = URL.createObjectURL(blob);
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = `${invoice.invoiceNumber}.pdf`;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
+  return await pdfDoc.save();
+}
+
+// Generate PDF and trigger download
+export async function generatePDF(invoice: InvoiceData, fileName?: string): Promise<void> {
+  try {
+    // Generate PDF bytes
+    const pdfBytes = await generatePDFBytes(invoice);
+    
+    // Trigger download
+    const blob = new Blob([pdfBytes], { type: 'application/pdf' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = fileName || `${invoice.invoiceNumber}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  } catch (error) {
+    console.error('Error generating PDF:', error);
+    throw error;
+  }
 }

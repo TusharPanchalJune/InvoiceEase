@@ -2,9 +2,11 @@ import { useState, useEffect } from "react";
 import { useQuery, useMutation, QueryClient } from "@tanstack/react-query";
 import { InvoiceData, InvoiceInput } from "@/types/invoice";
 import { apiRequest } from "@/lib/queryClient";
-import { generatePDF } from "@/utils/pdf-generator";
+import { generatePDF, generatePDFBytes } from "@/utils/pdf-generator";
 import { useToast } from "@/hooks/use-toast";
 import { parseCSV } from "@/utils/csv-parser";
+import JSZip from "jszip";
+import { format } from "date-fns";
 
 const queryClient = new QueryClient();
 
@@ -123,11 +125,21 @@ export function useInvoices() {
     await createInvoiceMutation.mutateAsync(data);
   };
 
+  // Generate a file name for an invoice based on customer name, date, and amount
+  const getInvoiceFileName = (invoice: InvoiceData): string => {
+    const customerNameSlug = invoice.customerName.replace(/\s+/g, '_').replace(/[^\w\s]/gi, '');
+    const dateStr = invoice.createdAt 
+      ? format(new Date(invoice.createdAt), "yyyyMMdd")
+      : format(new Date(), "yyyyMMdd");
+    return `${customerNameSlug}_${dateStr}_${invoice.totalAmount.toFixed(0)}.pdf`;
+  };
+
   // Download single invoice as PDF
   const downloadPdf = async (invoice: InvoiceData) => {
     try {
       setDownloadingIds(prev => new Set(prev).add(invoice.invoiceNumber));
-      await generatePDF(invoice);
+      const fileName = getInvoiceFileName(invoice);
+      await generatePDF(invoice, fileName);
     } catch (error) {
       toast({
         title: "Download Failed",
@@ -143,26 +155,53 @@ export function useInvoices() {
     }
   };
 
-  // Download all invoices as PDFs
+  // Download all invoices as a ZIP file containing PDFs
   const downloadAllPdfs = async () => {
     if (invoices.length === 0) return;
     
     try {
       setIsDownloadingAll(true);
-      // Download each invoice with a small delay to prevent browser from blocking
-      for (const invoice of invoices) {
-        await generatePDF(invoice);
-        await new Promise(resolve => setTimeout(resolve, 500));
+      const zip = new JSZip();
+      
+      // Show progress toast
+      toast({
+        title: "Generating PDFs",
+        description: "Creating PDF files...",
+      });
+      
+      // Generate PDF bytes for each invoice and add to zip
+      for (let i = 0; i < invoices.length; i++) {
+        const invoice = invoices[i];
+        const fileName = getInvoiceFileName(invoice);
+        
+        // Generate PDF bytes
+        const pdfBytes = await generatePDFBytes(invoice);
+        
+        // Add to zip
+        zip.file(fileName, pdfBytes);
       }
+      
+      // Generate zip file
+      const zipContent = await zip.generateAsync({ type: 'blob' });
+      
+      // Create download link
+      const url = URL.createObjectURL(zipContent);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `MP_Beauty_Invoices_${format(new Date(), "yyyyMMdd")}.zip`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
       
       toast({
         title: "Success",
-        description: `Downloaded ${invoices.length} invoices`,
+        description: `Downloaded ${invoices.length} invoices as a ZIP file`,
       });
     } catch (error) {
       toast({
         title: "Download Failed",
-        description: "Failed to download all invoices",
+        description: "Failed to generate ZIP file for download",
         variant: "destructive",
       });
     } finally {
