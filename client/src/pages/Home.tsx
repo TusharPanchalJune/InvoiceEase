@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Link } from "wouter";
 import TabNavigation from "@/components/TabNavigation";
 import CSVUploadForm from "@/components/CSVUploadForm";
 import ManualInvoiceForm from "@/components/ManualInvoiceForm";
 import InvoiceList from "@/components/InvoiceList";
 import { useInvoices } from "@/hooks/useInvoices";
+import { Button } from "@/components/ui/button";
 
 type TabType = "csv" | "manual";
 
@@ -27,7 +29,14 @@ export default function Home() {
             <div className="flex items-center">
               <h1 className="text-2xl font-bold text-gray-900">MP Beauty Association</h1>
             </div>
-            <h2 className="text-lg font-medium text-gray-600">Invoice Generator</h2>
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-medium text-gray-600">Invoice Generator</h2>
+              <Link href="/history">
+                <Button variant="outline" className="flex items-center gap-2">
+                  <i className="ri-history-line"></i> View History
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </header>
