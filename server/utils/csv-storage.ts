@@ -8,21 +8,29 @@ const CSV_FILE_PATH = path.join(process.cwd(), 'invoices.csv');
 
 // Ensure CSV file exists with headers
 function ensureCSVFile() {
-  if (!fs.existsSync(CSV_FILE_PATH)) {
-    const headers = [
-      'id',
-      'invoiceNumber',
-      'customerName',
-      'customerContact',
-      'description',
-      'amountPaid',
-      'dueAmount',
-      'totalAmount',
-      'createdAt',
-      'isDownloaded',
-      'isActive'
-    ];
+  const headers = [
+    'id',
+    'invoiceNumber',
+    'customerName',
+    'customerContact',
+    'description',
+    'amountPaid',
+    'dueAmount',
+    'totalAmount',
+    'createdAt',
+    'isDownloaded',
+    'isActive'
+  ];
+
+  // If file doesn't exist or is empty, write headers
+  if (!fs.existsSync(CSV_FILE_PATH) || fs.readFileSync(CSV_FILE_PATH, 'utf-8').trim() === '') {
     fs.writeFileSync(CSV_FILE_PATH, headers.join(',') + '\n');
+  } else {
+    // Check if file has headers
+    const firstLine = fs.readFileSync(CSV_FILE_PATH, 'utf-8').split('\n')[0];
+    if (!firstLine.includes('id') || !firstLine.includes('invoiceNumber')) {
+      fs.writeFileSync(CSV_FILE_PATH, headers.join(',') + '\n');
+    }
   }
 }
 
@@ -36,29 +44,60 @@ export function getNextInvoiceId(): number {
 
 // Get all invoices
 export function getAllInvoices(): Invoice[] {
-  ensureCSVFile();
-  const content = fs.readFileSync(CSV_FILE_PATH, 'utf-8');
-  if (!content.trim()) return [];
-  
-  const records = parse(content, {
-    columns: true,
-    skip_empty_lines: true,
-    cast: true,
-    trim: true,
-    quote: '"',
-    auto_parse: true
-  });
+  try {
+    ensureCSVFile();
+    const content = fs.readFileSync(CSV_FILE_PATH, 'utf-8');
+    const lines = content.split('\n').filter(line => line.trim());
+    
+    // If file is empty or only has headers, return empty array
+    if (lines.length <= 1) {
+      return [];
+    }
+    
+    try {
+      const records = parse(content, {
+        columns: true,
+        skip_empty_lines: true,
+        cast: true,
+        trim: true,
+        quote: '"',
+        auto_parse: true,
+        relaxColumnCount: true // Add this to handle potential column count mismatches
+      });
 
-  return records.map((record: any) => ({
-    ...record,
-    id: parseInt(record.id),
-    amountPaid: record.amountPaid.toString(),
-    dueAmount: record.dueAmount.toString(),
-    totalAmount: record.totalAmount.toString(),
-    createdAt: new Date(record.createdAt),
-    isDownloaded: record.isDownloaded === 'true' || record.isDownloaded === '"true"' || record.isDownloaded === '1',
-    isActive: record.isActive === undefined ? true : (record.isActive === 'true' || record.isActive === '"true"' || record.isActive === '1')
-  }));
+      return records.map((record: any) => ({
+        ...record,
+        id: parseInt(record.id) || 1,
+        amountPaid: (record.amountPaid || '0').toString(),
+        dueAmount: (record.dueAmount || '0').toString(),
+        totalAmount: (record.totalAmount || '0').toString(),
+        createdAt: record.createdAt ? new Date(record.createdAt) : new Date(),
+        isDownloaded: record.isDownloaded === 'true' || record.isDownloaded === '"true"' || record.isDownloaded === '1',
+        isActive: record.isActive === undefined ? true : (record.isActive === 'true' || record.isActive === '"true"' || record.isActive === '1')
+      }));
+    } catch (parseError) {
+      // If parsing fails, reinitialize the file with headers
+      const headers = [
+        'id',
+        'invoiceNumber',
+        'customerName',
+        'customerContact',
+        'description',
+        'amountPaid',
+        'dueAmount',
+        'totalAmount',
+        'createdAt',
+        'isDownloaded',
+        'isActive'
+      ];
+      fs.writeFileSync(CSV_FILE_PATH, headers.join(',') + '\n');
+      return [];
+    }
+  } catch (error) {
+    // If any file operation fails, ensure the file exists with headers
+    ensureCSVFile();
+    return [];
+  }
 }
 
 // Get undownloaded invoices
@@ -68,28 +107,76 @@ export function getUndownloadedInvoices(): Invoice[] {
 
 // Save a new invoice
 export function saveInvoice(invoice: Invoice): Invoice {
-  ensureCSVFile();
-  
-  // Add to CSV file
-  const csvLine = stringify([{
-    id: invoice.id,
-    invoiceNumber: invoice.invoiceNumber,
-    customerName: invoice.customerName,
-    customerContact: invoice.customerContact,
-    description: invoice.description,
-    amountPaid: invoice.amountPaid,
-    dueAmount: invoice.dueAmount,
-    totalAmount: invoice.totalAmount,
-    createdAt: invoice.createdAt.toISOString(),
-    isDownloaded: invoice.isDownloaded ? 'true' : 'false',
-    isActive: invoice.isActive === undefined ? 'true' : (invoice.isActive ? 'true' : 'false')
-  }], {
-    header: false,
-    quoted: true
-  });
-  
-  fs.appendFileSync(CSV_FILE_PATH, csvLine);
-  return invoice;
+  try {
+    ensureCSVFile();
+    
+    // Add to CSV file
+    const csvLine = stringify([{
+      id: invoice.id,
+      invoiceNumber: invoice.invoiceNumber,
+      customerName: invoice.customerName,
+      customerContact: invoice.customerContact,
+      description: invoice.description,
+      amountPaid: invoice.amountPaid,
+      dueAmount: invoice.dueAmount,
+      totalAmount: invoice.totalAmount,
+      createdAt: invoice.createdAt.toISOString(),
+      isDownloaded: invoice.isDownloaded ? 'true' : 'false',
+      isActive: invoice.isActive === undefined ? 'true' : (invoice.isActive ? 'true' : 'false')
+    }], {
+      header: false,
+      quoted: true
+    });
+    
+    try {
+      // Check if file is empty (only contains headers)
+      const content = fs.readFileSync(CSV_FILE_PATH, 'utf-8');
+      const lines = content.split('\n').filter(line => line.trim());
+      
+      if (lines.length <= 1) {
+        // File is empty or only has headers
+        const headers = [
+          'id',
+          'invoiceNumber',
+          'customerName',
+          'customerContact',
+          'description',
+          'amountPaid',
+          'dueAmount',
+          'totalAmount',
+          'createdAt',
+          'isDownloaded',
+          'isActive'
+        ].join(',');
+        
+        fs.writeFileSync(CSV_FILE_PATH, headers + '\n' + csvLine);
+      } else {
+        // Append to existing content
+        fs.appendFileSync(CSV_FILE_PATH, csvLine);
+      }
+    } catch (writeError) {
+      // If writing fails, try to reinitialize the file
+      const headers = [
+        'id',
+        'invoiceNumber',
+        'customerName',
+        'customerContact',
+        'description',
+        'amountPaid',
+        'dueAmount',
+        'totalAmount',
+        'createdAt',
+        'isDownloaded',
+        'isActive'
+      ].join(',');
+      
+      fs.writeFileSync(CSV_FILE_PATH, headers + '\n' + csvLine);
+    }
+    
+    return invoice;
+  } catch (error) {
+    throw new Error('Failed to save invoice');
+  }
 }
 
 // Mark invoice as inactive
@@ -218,6 +305,18 @@ export function saveInvoices(invoices: Invoice[]): Invoice[] {
     }
   );
   
-  fs.appendFileSync(CSV_FILE_PATH, csvLines);
+  // Check if file is empty (only contains headers)
+  const content = fs.readFileSync(CSV_FILE_PATH, 'utf-8');
+  const lines = content.split('\n').filter(line => line.trim());
+  
+  if (lines.length <= 1) {
+    // File is empty or only has headers, write with headers
+    const headers = lines[0] || content.trim();
+    fs.writeFileSync(CSV_FILE_PATH, headers + '\n' + csvLines);
+  } else {
+    // Append to existing content
+    fs.appendFileSync(CSV_FILE_PATH, csvLines);
+  }
+  
   return invoices;
 } 
