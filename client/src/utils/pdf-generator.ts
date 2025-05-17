@@ -20,79 +20,151 @@ export async function generatePDF(invoice: InvoiceData): Promise<void> {
   // Set current y position (start from top)
   let y = page.getHeight() - margin;
   
-  // Header - Background rectangle for the header
-  page.drawRectangle({
-    x: margin,
-    y: y - 80,
-    width: width,
-    height: 80,
-    color: rgb(0.39, 0.4, 0.94), // Primary color
-  });
-  
-  // Invoice title
-  page.drawText('INVOICE', {
-    x: margin + 20,
-    y: y - 45,
-    size: 24,
-    font: helveticaBold,
-    color: rgb(1, 1, 1),
-  });
-  
-  // Invoice number and date
-  const formattedDate = invoice.createdAt
-    ? format(new Date(invoice.createdAt), 'MMMM d, yyyy')
-    : format(new Date(), 'MMMM d, yyyy');
-  
-  page.drawText(invoice.invoiceNumber, {
-    x: margin + width - 150,
-    y: y - 35,
-    size: 12,
-    font: helveticaFont,
-    color: rgb(1, 1, 1),
-  });
-  
-  page.drawText(formattedDate, {
-    x: margin + width - 150,
-    y: y - 55,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(1, 1, 1),
-  });
-  
-  // Move position down past the header
-  y -= 120;
-  
-  // Company info
+  // Company info - upper left
   page.drawText('MP Beauty Association', {
     x: margin,
     y,
-    size: 16,
+    size: 14,
     font: helveticaBold,
     color: rgb(0, 0, 0),
   });
   
-  y -= 50;
+  y -= 20;
   
-  // Customer Info
-  page.drawText('BILLED TO', {
+  page.drawText('Phone: (020) 000-0000', {
     x: margin,
     y,
     size: 10,
     font: helveticaFont,
-    color: rgb(0.5, 0.5, 0.5),
+    color: rgb(0.3, 0.3, 0.3),
   });
   
+  // Invoice title - upper right
+  page.drawText('INVOICE', {
+    x: margin + width - 100,
+    y: page.getHeight() - margin,
+    size: 24,
+    font: helveticaBold,
+    color: rgb(0.6, 0.6, 0.6),
+  });
+  
+  // Invoice details box - upper right below title
+  y = page.getHeight() - margin - 50;
+  
+  // Invoice Number Box
+  // Label
+  page.drawRectangle({
+    x: margin + width - 200,
+    y: y,
+    width: 100,
+    height: 20,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText('INVOICE #', {
+    x: margin + width - 190,
+    y: y + 6,
+    size: 10,
+    font: helveticaBold,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Value
+  page.drawRectangle({
+    x: margin + width - 100,
+    y: y,
+    width: 100,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText(invoice.invoiceNumber, {
+    x: margin + width - 90,
+    y: y + 6,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Date Box
   y -= 20;
+  
+  // Label
+  page.drawRectangle({
+    x: margin + width - 200,
+    y: y,
+    width: 100,
+    height: 20,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText('DATE', {
+    x: margin + width - 190,
+    y: y + 6,
+    size: 10,
+    font: helveticaBold,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Value
+  page.drawRectangle({
+    x: margin + width - 100,
+    y: y,
+    width: 100,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  const formattedDate = invoice.createdAt
+    ? format(new Date(invoice.createdAt), 'MM/dd/yyyy')
+    : format(new Date(), 'MM/dd/yyyy');
+  
+  page.drawText(formattedDate, {
+    x: margin + width - 90,
+    y: y + 6,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Bill To section
+  y = page.getHeight() - margin - 120;
+  
+  page.drawRectangle({
+    x: margin,
+    y: y,
+    width: 200,
+    height: 20,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText('BILL TO', {
+    x: margin + 10,
+    y: y + 6,
+    size: 10,
+    font: helveticaBold,
+    color: rgb(0, 0, 0),
+  });
+  
+  y -= 25;
   
   page.drawText(invoice.customerName, {
     x: margin,
     y,
-    size: 12,
+    size: 11,
     font: helveticaBold,
     color: rgb(0, 0, 0),
   });
   
-  y -= 20;
+  y -= 15;
   
   page.drawText(invoice.customerContact, {
     x: margin,
@@ -102,125 +174,243 @@ export async function generatePDF(invoice: InvoiceData): Promise<void> {
     color: rgb(0.3, 0.3, 0.3),
   });
   
-  y -= 40;
+  // Description table
+  y -= 50;
   
-  // Draw horizontal line
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: margin + width, y },
-    thickness: 1,
-    color: rgb(0.8, 0.8, 0.8),
-  });
-  
-  y -= 30;
+  // Table headers
+  const tableTop = y;
+  const descWidth = width - 100;
   
   // Description header
-  page.drawText('Description', {
+  page.drawRectangle({
     x: margin,
     y,
-    size: 12,
+    width: descWidth,
+    height: 20,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText('DESCRIPTION', {
+    x: margin + 10,
+    y: y + 6,
+    size: 10,
     font: helveticaBold,
     color: rgb(0, 0, 0),
   });
   
   // Amount header
-  page.drawText('Amount', {
-    x: margin + width - 100,
+  page.drawRectangle({
+    x: margin + descWidth,
     y,
-    size: 12,
+    width: 100,
+    height: 20,
+    color: rgb(0.95, 0.95, 0.95),
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText('AMOUNT', {
+    x: margin + descWidth + 10,
+    y: y + 6,
+    size: 10,
     font: helveticaBold,
     color: rgb(0, 0, 0),
   });
   
-  y -= 25;
-  
-  // Service description
-  page.drawText(invoice.description, {
-    x: margin,
-    y,
-    size: 11,
-    font: helveticaFont,
-    color: rgb(0, 0, 0),
-  });
-  
-  // Total for the service
-  page.drawText(`$${invoice.totalAmount.toFixed(2)}`, {
-    x: margin + width - 100,
-    y,
-    size: 11,
-    font: helveticaFont,
-    color: rgb(0, 0, 0),
-  });
-  
+  // Table row
   y -= 30;
   
-  // Draw horizontal line
-  page.drawLine({
-    start: { x: margin, y },
-    end: { x: margin + width, y },
-    thickness: 1,
-    color: rgb(0.8, 0.8, 0.8),
+  // Description cell
+  page.drawRectangle({
+    x: margin,
+    y,
+    width: descWidth,
+    height: 30,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
   });
   
-  y -= 40;
-  
-  // Amount paid
-  page.drawText('Amount Paid:', {
-    x: margin + width - 200,
-    y,
+  page.drawText(invoice.description, {
+    x: margin + 10,
+    y: y + 10,
     size: 10,
     font: helveticaFont,
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(`$${invoice.amountPaid.toFixed(2)}`, {
-    x: margin + width - 100,
+  // Amount cell
+  page.drawRectangle({
+    x: margin + descWidth,
     y,
+    width: 100,
+    height: 30,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText(`₹${invoice.totalAmount.toFixed(2)}`, {
+    x: margin + descWidth + 60,
+    y: y + 10,
     size: 10,
     font: helveticaFont,
     color: rgb(0, 0, 0),
   });
   
+  // Empty row for space
+  y -= 60;
+  
+  // Description cell
+  page.drawRectangle({
+    x: margin,
+    y,
+    width: descWidth,
+    height: 60,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  // Amount cell
+  page.drawRectangle({
+    x: margin + descWidth,
+    y,
+    width: 100,
+    height: 60,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  // Amount paid row
   y -= 20;
   
-  // Due amount
+  // Label cell
+  page.drawRectangle({
+    x: margin,
+    y,
+    width: descWidth,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText('Amount Paid:', {
+    x: margin + descWidth - 100,
+    y: y + 6,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Amount cell
+  page.drawRectangle({
+    x: margin + descWidth,
+    y,
+    width: 100,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText(`₹${invoice.amountPaid.toFixed(2)}`, {
+    x: margin + descWidth + 60,
+    y: y + 6,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0, 0, 0),
+  });
+  
+  // Due amount row
+  y -= 20;
+  
+  // Label cell
+  page.drawRectangle({
+    x: margin,
+    y,
+    width: descWidth,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
   page.drawText('Due Amount:', {
-    x: margin + width - 200,
-    y,
+    x: margin + descWidth - 100,
+    y: y + 6,
     size: 10,
     font: helveticaFont,
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(`$${invoice.dueAmount.toFixed(2)}`, {
-    x: margin + width - 100,
+  // Amount cell
+  page.drawRectangle({
+    x: margin + descWidth,
     y,
+    width: 100,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText(`₹${invoice.dueAmount.toFixed(2)}`, {
+    x: margin + descWidth + 60,
+    y: y + 6,
     size: 10,
     font: helveticaFont,
     color: rgb(0, 0, 0),
   });
   
-  y -= 25;
+  // Total row
+  y -= 20;
   
-  // Total amount
-  page.drawText('Total Amount:', {
-    x: margin + width - 200,
+  // Label cell
+  page.drawRectangle({
+    x: margin,
     y,
-    size: 12,
+    width: descWidth,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText('TOTAL', {
+    x: margin + descWidth - 100,
+    y: y + 6,
+    size: 10,
     font: helveticaBold,
     color: rgb(0, 0, 0),
   });
   
-  page.drawText(`$${invoice.totalAmount.toFixed(2)}`, {
-    x: margin + width - 100,
+  // Amount cell
+  page.drawRectangle({
+    x: margin + descWidth,
     y,
-    size: 12,
+    width: 100,
+    height: 20,
+    borderColor: rgb(0.8, 0.8, 0.8),
+    borderWidth: 1,
+  });
+  
+  page.drawText(`₹${invoice.totalAmount.toFixed(2)}`, {
+    x: margin + descWidth + 60,
+    y: y + 6,
+    size: 10,
     font: helveticaBold,
     color: rgb(0, 0, 0),
+  });
+  
+  // Thank you note
+  y -= 40;
+  
+  page.drawText('Thank you for your business!', {
+    x: margin + (width / 2) - 60,
+    y,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0.3, 0.3, 0.3),
   });
   
   // Footer
-  y = margin + 50;
+  y = margin + 20;
   
   page.drawText('© MP Beauty Association. All rights reserved.', {
     x: margin + (width / 2) - 100,

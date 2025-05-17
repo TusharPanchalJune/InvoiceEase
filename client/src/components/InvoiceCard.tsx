@@ -13,63 +13,79 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
     : format(new Date(), "MMMM d, yyyy");
 
   return (
-    <div className="invoice-preview bg-gray-50 rounded-lg overflow-hidden border border-gray-200">
+    <div className="invoice-preview bg-white rounded-lg overflow-hidden border border-gray-200">
       {/* Invoice Header */}
-      <div className="bg-primary-500 text-white p-4">
+      <div className="p-6 border-b border-gray-200">
         <div className="flex justify-between items-center">
-          <h4 className="text-lg font-semibold font-invoice">INVOICE</h4>
+          <div>
+            <p className="font-bold text-lg mb-1">MP Beauty Association</p>
+            <p className="text-sm text-gray-600">Phone: (020) 000-0000</p>
+          </div>
           <div className="text-right">
-            <p className="text-sm opacity-90">{invoice.invoiceNumber}</p>
-            <p className="text-xs opacity-75">{formattedDate}</p>
+            <h4 className="text-2xl font-semibold text-gray-500 font-invoice mb-4">INVOICE</h4>
+            <table className="ml-auto text-sm border-collapse">
+              <tbody>
+                <tr>
+                  <td className="border border-gray-300 bg-gray-100 px-3 py-1 font-medium">INVOICE #</td>
+                  <td className="border border-gray-300 px-3 py-1">{invoice.invoiceNumber}</td>
+                </tr>
+                <tr>
+                  <td className="border border-gray-300 bg-gray-100 px-3 py-1 font-medium">DATE</td>
+                  <td className="border border-gray-300 px-3 py-1">{formattedDate}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
         </div>
       </div>
       
       {/* Invoice Content */}
-      <div className="p-4 font-invoice">
-        {/* Company Info */}
-        <div className="mb-6">
-          <p className="font-bold text-lg">MP Beauty Association</p>
-        </div>
-        
+      <div className="p-6 font-invoice">
         {/* Customer Info */}
-        <div className="mb-4">
-          <p className="text-sm text-gray-500">BILLED TO</p>
+        <div className="mb-6">
+          <div className="bg-gray-100 px-3 py-2 mb-2 font-medium">BILL TO</div>
           <p className="font-medium">{invoice.customerName}</p>
           <p className="text-sm text-gray-600">{invoice.customerContact}</p>
         </div>
         
         {/* Services */}
-        <div className="border-t border-b border-gray-200 py-4 my-4">
-          <div className="flex justify-between mb-2">
-            <p className="text-sm font-medium">Description</p>
-            <p className="text-sm font-medium">Amount</p>
-          </div>
-          <div className="flex justify-between">
-            <p>{invoice.description}</p>
-            <p>${invoice.totalAmount.toFixed(2)}</p>
-          </div>
-        </div>
+        <table className="w-full border-collapse mb-6">
+          <thead>
+            <tr>
+              <th className="border border-gray-300 bg-gray-100 px-4 py-2 text-left">DESCRIPTION</th>
+              <th className="border border-gray-300 bg-gray-100 px-4 py-2 text-right w-32">AMOUNT</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td className="border border-gray-300 px-4 py-2">{invoice.description}</td>
+              <td className="border border-gray-300 px-4 py-2 text-right">₹{invoice.totalAmount.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td className="border-l border-r border-gray-300 px-4 py-6"></td>
+              <td className="border-l border-r border-gray-300 px-4"></td>
+            </tr>
+            <tr>
+              <td className="border border-gray-300 px-4 py-2 text-right font-medium">Amount Paid:</td>
+              <td className="border border-gray-300 px-4 py-2 text-right">₹{invoice.amountPaid.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td className="border border-gray-300 px-4 py-2 text-right font-medium">Due Amount:</td>
+              <td className="border border-gray-300 px-4 py-2 text-right">₹{invoice.dueAmount.toFixed(2)}</td>
+            </tr>
+            <tr>
+              <td className="border border-gray-300 px-4 py-2 text-right font-medium">TOTAL</td>
+              <td className="border border-gray-300 px-4 py-2 text-right font-bold">₹{invoice.totalAmount.toFixed(2)}</td>
+            </tr>
+          </tbody>
+        </table>
         
-        {/* Total */}
-        <div className="space-y-1 text-right">
-          <div className="flex justify-between text-sm">
-            <p>Amount Paid:</p>
-            <p>${invoice.amountPaid.toFixed(2)}</p>
-          </div>
-          <div className="flex justify-between text-sm">
-            <p>Due Amount:</p>
-            <p>${invoice.dueAmount.toFixed(2)}</p>
-          </div>
-          <div className="flex justify-between font-medium text-base">
-            <p>Total Amount:</p>
-            <p>${invoice.totalAmount.toFixed(2)}</p>
-          </div>
-        </div>
+        {/* Thank you note */}
+        <p className="text-center text-sm text-gray-600 mb-4">Thank you for your business!</p>
       </div>
       
       {/* Invoice Footer */}
-      <div className="bg-gray-100 p-4 flex justify-end">
+      <div className="bg-gray-100 p-4 flex justify-end border-t border-gray-200">
         <Button 
           size="sm" 
           onClick={onDownload}
