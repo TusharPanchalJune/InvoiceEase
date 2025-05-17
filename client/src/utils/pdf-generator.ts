@@ -33,33 +33,33 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
   
   y -= 15;
   
-  page.drawText('[Street Address]', {
-    x: margin,
-    y,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('[Street Address]', {
+  //   x: margin,
+  //   y,
+  //   size: 10,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
-  y -= 15;
+  // y -= 15;
   
-  page.drawText('[City, ST ZIP]', {
-    x: margin,
-    y,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('[City, ST ZIP]', {
+  //   x: margin,
+  //   y,
+  //   size: 10,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
-  y -= 15;
+  // y -= 15;
   
-  page.drawText('Phone: (000) 000-0000', {
-    x: margin,
-    y,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('Phone: (000) 000-0000', {
+  //   x: margin,
+  //   y,
+  //   size: 10,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
   // Invoice title
   page.drawText('INVOICE', {
@@ -191,35 +191,35 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
   
   y -= 15;
   
-  page.drawText('[Company Name]', {
-    x: margin,
-    y,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('[Company Name]', {
+  //   x: margin,
+  //   y,
+  //   size: 10,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
-  y -= 15;
+  // y -= 15;
   
-  page.drawText('[Street Address]', {
-    x: margin,
-    y,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('[Street Address]', {
+  //   x: margin,
+  //   y,
+  //   size: 10,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
-  y -= 15;
+  // y -= 15;
   
-  page.drawText('[City, ST ZIP]', {
-    x: margin,
-    y,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('[City, ST ZIP]', {
+  //   x: margin,
+  //   y,
+  //   size: 10,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
-  y -= 15;
+  // y -= 15;
   
   page.drawText(invoice.customerContact, {
     x: margin,
@@ -231,15 +231,15 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
   
   y -= 15;
   
-  page.drawText('[Email Address]', {
-    x: margin,
-    y,
-    size: 10,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('[Email Address]', {
+  //   x: margin,
+  //   y,
+  //   size: 10,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
-  y -= 30;
+  // y -= 30;
   
   // Description and Amount Table
   const descTableX = margin;
@@ -320,29 +320,98 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
     color: rgb(0, 0, 0),
   });
   
-  // Add 3 empty rows
-  for (let i = 0; i < 3; i++) {
-    const rowY = y - descTableRowHeight*(3+i);
-    
-    page.drawRectangle({
-      x: descTableX,
-      y: rowY - descTableRowHeight,
-      width: descColWidth,
-      height: descTableRowHeight,
-      borderWidth: 1,
-      borderColor: rgb(0.7, 0.7, 0.7),
-    });
-    
-    page.drawRectangle({
-      x: descTableX + descColWidth,
-      y: rowY - descTableRowHeight,
-      width: amountColWidth,
-      height: descTableRowHeight,
-      borderWidth: 1,
-      borderColor: rgb(0.7, 0.7, 0.7),
-    });
-  }
+  // Add Amount Paid row
+  const paidRowY = y - descTableRowHeight*3;
+  page.drawRectangle({
+    x: descTableX,
+    y: paidRowY - descTableRowHeight,
+    width: descColWidth,
+    height: descTableRowHeight,
+    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7),
+  });
   
+  page.drawRectangle({
+    x: descTableX + descColWidth,
+    y: paidRowY - descTableRowHeight,
+    width: amountColWidth,
+    height: descTableRowHeight,
+    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7),
+  });
+
+  page.drawText('Amount Paid', {
+    x: descTableX + 10,
+    y: paidRowY - descTableRowHeight/2 - 5,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  page.drawText(`Rs. ${invoice.amountPaid.toFixed(2)}`, {
+    x: descTableX + descColWidth + amountColWidth - 70,
+    y: paidRowY - descTableRowHeight/2 - 5,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0, 0.5, 0),
+  });
+
+  // Add Due Amount row
+  const dueRowY = y - descTableRowHeight*4;
+  page.drawRectangle({
+    x: descTableX,
+    y: dueRowY - descTableRowHeight,
+    width: descColWidth,
+    height: descTableRowHeight,
+    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7),
+  });
+  
+  page.drawRectangle({
+    x: descTableX + descColWidth,
+    y: dueRowY - descTableRowHeight,
+    width: amountColWidth,
+    height: descTableRowHeight,
+    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7),
+  });
+
+  page.drawText('Due Amount', {
+    x: descTableX + 10,
+    y: dueRowY - descTableRowHeight/2 - 5,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0.4, 0.4, 0.4),
+  });
+
+  page.drawText(`Rs. ${invoice.dueAmount.toFixed(2)}`, {
+    x: descTableX + descColWidth + amountColWidth - 70,
+    y: dueRowY - descTableRowHeight/2 - 5,
+    size: 10,
+    font: helveticaFont,
+    color: rgb(0.8, 0, 0),
+  });
+
+  // Add one empty row
+  const emptyRowY = y - descTableRowHeight*5;
+  page.drawRectangle({
+    x: descTableX,
+    y: emptyRowY - descTableRowHeight,
+    width: descColWidth,
+    height: descTableRowHeight,
+    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7),
+  });
+  
+  page.drawRectangle({
+    x: descTableX + descColWidth,
+    y: emptyRowY - descTableRowHeight,
+    width: amountColWidth,
+    height: descTableRowHeight,
+    borderWidth: 1,
+    borderColor: rgb(0.7, 0.7, 0.7),
+  });
+
   // Final row with thank you and total
   const finalRowY = y - descTableRowHeight*6;
   
@@ -391,23 +460,23 @@ export async function generatePDFBytes(invoice: InvoiceData): Promise<Uint8Array
   // Footer text
   y = margin + 70;
   
-  page.drawText('If you have any questions about this invoice, please contact', {
-    x: margin + width/2 - 150,
-    y,
-    size: 9,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('If you have any questions about this invoice, please contact', {
+  //   x: margin + width/2 - 150,
+  //   y,
+  //   size: 9,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
-  y -= 15;
+  // y -= 15;
   
-  page.drawText('[Name, Phone, email@address.com]', {
-    x: margin + width/2 - 90,
-    y,
-    size: 9,
-    font: helveticaFont,
-    color: rgb(0.4, 0.4, 0.4),
-  });
+  // page.drawText('[Name, Phone, email@address.com]', {
+  //   x: margin + width/2 - 90,
+  //   y,
+  //   size: 9,
+  //   font: helveticaFont,
+  //   color: rgb(0.4, 0.4, 0.4),
+  // });
   
   // Small credit at the bottom
   y = margin;

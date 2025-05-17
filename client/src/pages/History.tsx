@@ -130,7 +130,9 @@ export default function History() {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Date</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Customer</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Amount</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Paid</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due</th>
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Total</th>
                     <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
                 </thead>
@@ -145,7 +147,9 @@ export default function History() {
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">{invoice.customerName}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{invoice.description}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">Rs. {invoice.totalAmount.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-green-600">Rs. {invoice.amountPaid.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-red-600">Rs. {invoice.dueAmount.toFixed(2)}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">Rs. {invoice.totalAmount.toFixed(2)}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                         <Button 
                           size="sm" 
