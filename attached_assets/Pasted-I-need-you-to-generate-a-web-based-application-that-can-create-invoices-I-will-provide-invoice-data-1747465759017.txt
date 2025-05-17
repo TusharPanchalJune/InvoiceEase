@@ -1,0 +1,42 @@
+I need you to generate a web-based application that can create invoices. I will provide invoice data in two ways:
+
+1.  **CSV File Upload:** The primary method. Each row in the CSV will represent one invoice. The CSV file will contain the following columns:
+    * Customer Name
+    * Customer Contact Number
+    * Payment For (description of goods or services)
+    * Amount Paid
+    * Due Amount
+2.  **Form Input:** The application should also allow manual invoice creation by filling out a form with the same fields as the CSV columns (Customer Name, Customer Contact Number, Payment For, Amount Paid, Due Amount).
+
+Every invoice generated should include the following static information:
+
+* Invoice Generator Name: "MP Beauty Association"
+
+The application should automatically calculate the "Total Amount" (Amount Paid + Due Amount).
+
+Here's a breakdown of the application requirements:
+
+* **User Interface (UI):**
+    * Cursor, please choose a clean and professional UI design.  Prioritize ease of use.  Use appropriate fonts, colors, and layout.
+    * The application should have two main sections:
+        * "Generate from CSV":  A section with an upload button for the CSV file.  Clear instructions should be provided.
+        * "Generate Manually": A section with a form for entering invoice details.
+    * The generated invoices should be clearly displayed.  Consider using a card-like layout for each invoice.
+    * Each generated invoice should have a "Download" button to download it (preferably as a PDF).
+* **Functionality:**
+    * **CSV Processing:** The application must be able to parse the uploaded CSV file correctly.
+    * **Invoice Generation:** For each row in the CSV (or form submission), the application should:
+        * Calculate the "Total Amount."
+        * Generate an invoice with all the required fields (including the static "MP Beauty Association" name).
+        * Format the invoice neatly.
+    * **PDF Download:** The "Download" button for each invoice should generate a PDF version of the invoice and allow the user to download it.  Use a library that simplifies PDF creation.
+* **Technical Requirements (Important - Minimize my involvement):**
+    * I have very limited coding and deployment knowledge.  Please generate code that is as self-contained and easy to deploy as possible.  If there are any setup steps, generate very clear, step-by-step instructions that assume I am a beginner.
+    * If possible, generate code that can be run locally with minimal setup (e.g., using a simple web server).  Avoid complex server configurations or database setups if you can.
+    * Use libraries and frameworks that are widely used and well-documented to make the code easier to understand (even if I don't fully understand it initially).
+* **User Experience:**
+    * The application should be intuitive to use, even for someone with limited technical skills.
+    * Provide clear error messages if the CSV file is in the wrong format or if there are issues with the data.
+    * The application should be responsive and work well on different screen sizes.
+
+In summary, I need a user-friendly web application that can generate invoices from a CSV file or a form, and allow users to download them as PDFs.  Please generate code that requires minimal setup and coding knowledge on my part.
