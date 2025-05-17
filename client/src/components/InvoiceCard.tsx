@@ -71,15 +71,15 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
           <tbody>
             <tr>
               <td className="p-2 border border-gray-300">{invoice.description}</td>
-              <td className="p-2 text-right border border-gray-300">Rs. {invoice.totalAmount.toFixed(2)}</td>
+              <td className="p-2 text-right border border-gray-300">Rs. {Number(invoice.totalAmount).toFixed(2)}</td>
             </tr>
             <tr>
               <td className="p-2 border border-gray-300 text-gray-600">Amount Paid</td>
-              <td className="p-2 text-right border border-gray-300 text-green-600">Rs. {invoice.amountPaid.toFixed(2)}</td>
+              <td className="p-2 text-right border border-gray-300 text-green-600">Rs. {Number(invoice.amountPaid).toFixed(2)}</td>
             </tr>
             <tr>
               <td className="p-2 border border-gray-300 text-gray-600">Due Amount</td>
-              <td className="p-2 text-right border border-gray-300 text-red-600">Rs. {invoice.dueAmount.toFixed(2)}</td>
+              <td className="p-2 text-right border border-gray-300 text-red-600">Rs. {Number(invoice.dueAmount).toFixed(2)}</td>
             </tr>
             {/* Add empty row to match template */}
             <tr>
@@ -91,7 +91,7 @@ const InvoiceCard: React.FC<InvoiceCardProps> = ({ invoice, onDownload }) => {
               <td className="p-2 border border-gray-300">
                 <div className="flex justify-between font-bold">
                   <span>TOTAL</span>
-                  <span>Rs. {invoice.totalAmount.toFixed(2)}</span>
+                  <span>Rs. {Number(invoice.totalAmount).toFixed(2)}</span>
                 </div>
               </td>
             </tr>
